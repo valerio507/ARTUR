@@ -769,7 +769,7 @@ def manejar_error(e):
     }
     return render_template("error.html", codigo=e.code, mensaje=mensajes.get(e.code, e.name)), e.code
 
-
+#funciona 
 with app.app_context():
     init_db()
 
