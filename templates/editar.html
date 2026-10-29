@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block titulo %}Editar ticket #{{ ticket.id }}{% endblock %}
+
+{% block contenido %}
+<section class="tickets">
+    <h2>Editar ticket #{{ ticket.id }}</h2>
+
+    <form method="post" class="form">
+        <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+
+        <label for="titulo">Título</label>
+        <input type="text" id="titulo" name="titulo" maxlength="100" value="{{ ticket.titulo }}" required>
+
+        <label for="descripcion">Descripción</label>
+        <textarea id="descripcion" name="descripcion" rows="5" maxlength="2000" required>{{ ticket.descripcion }}</textarea>
+
+        <label for="prioridad">Prioridad</label>
+        <select id="prioridad" name="prioridad">
+            {% for p in prioridades %}
+            <option value="{{ p }}" {% if ticket.prioridad == p %}selected{% endif %}>{{ p }}</option>
+            {% endfor %}
+        </select>
+
+        <label for="estado">Estado</label>
+        <select id="estado" name="estado">
+            {% for e in estados %}
+            <option value="{{ e }}" {% if ticket.estado == e %}selected{% endif %}>{{ e }}</option>
+            {% endfor %}
+        </select>
+
+        <label for="tecnico">Técnico asignado</label>
+        <select id="tecnico" name="tecnico">
+            <option value="">Sin asignar</option>
+            {% for u in tecnicos %}
+            <option value="{{ u }}" {% if ticket.tecnico == u %}selected{% endif %}>{{ u }}</option>
+            {% endfor %}
+        </select>
+
+        <div class="fila-botones">
+            <button type="submit">Guardar cambios</button>
+            <a href="{{ url_for('inicio') }}" class="limpiar">Cancelar</a>
+        </div>
+    </form>
+</section>
+{% endblock %}

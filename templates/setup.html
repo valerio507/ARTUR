@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block titulo %}Crear administrador{% endblock %}
+
+{% block contenido %}
+<section class="tickets auth">
+    <h2>Crear administrador</h2>
+    <p>Es la primera vez que se abre ARTUR. Crea la cuenta principal.</p>
+
+    <form method="post" class="form">
+        <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+
+        <label for="usuario">Usuario</label>
+        <input type="text" id="usuario" name="usuario" maxlength="30" required autofocus>
+
+        <label for="password">Contraseña (mínimo 8, con letras y números)</label>
+        <input type="password" id="password" name="password" minlength="8" required>
+
+        <label for="password2">Repite la contraseña</label>
+        <input type="password" id="password2" name="password2" minlength="8" required>
+
+        <button type="submit">Crear administrador</button>
+    </form>
+</section>
+{% endblock %}

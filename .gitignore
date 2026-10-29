@@ -1,0 +1,14 @@
+# Entorno virtual
+.venv/
+
+# Datos y secretos (no publicar)
+pydesk.db
+secret.key
+uploads/
+
+# Python
+__pycache__/
+*.pyc
+
+# Editor
+.vscode/

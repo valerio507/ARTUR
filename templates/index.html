@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+{% block titulo %}Tickets{% endblock %}
+
+{% block contenido %}
+{% from "graficas.html" import barras %}
+
+<section class="welcome">
+    <h2>Panel de control</h2>
+    <p>Administra las incidencias informáticas desde un solo lugar.</p>
+</section>
+
+{% if vencidos %}
+<div class="alerta alerta-error">
+    ⚠ Hay {{ vencidos }} ticket{{ 's' if vencidos != 1 else '' }} fuera del tiempo de atención (SLA).
+    <a href="{{ url_for('inicio', sla='vencido') }}">Ver vencidos</a>
+</div>
+{% endif %}
+
+<section class="stats">
+    <article class="card">
+        <h3>Total de tickets</h3>
+        <p class="number">{{ total }}</p>
+    </article>
+    <article class="card">
+        <h3>Pendientes</h3>
+        <p class="number pendiente-num">{{ pendientes }}</p>
+    </article>
+    <article class="card">
+        <h3>En proceso</h3>
+        <p class="number proceso-num">{{ en_proceso }}</p>
+    </article>
+    <article class="card">
+        <h3>Resueltos</h3>
+        <p class="number resuelto-num">{{ resueltos }}</p>
+    </article>
+</section>
+
+<section class="graficas">
+    {{ barras("Tickets por estado", por_estado) }}
+    {{ barras("Tickets por prioridad", por_prioridad) }}
+    {{ barras("Tickets por técnico", por_tecnico) }}
+</section>
+
+<details class="tickets">
+    <summary>+ Nuevo ticket</summary>
+
+    <form action="{{ url_for('nuevo_ticket') }}" method="post" class="form">
+        <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+
+        <label for="titulo">Título</label>
+        <input type="text" id="titulo" name="titulo" maxlength="100"
+               placeholder="Ej: No hay internet en el área de ventas" required>
+
+        <label for="descripcion">Descripción</label>
+        <textarea id="descripcion" name="descripcion" rows="4" maxlength="2000"
+                  placeholder="Describe el problema con detalle" required></textarea>
+
+        <label for="prioridad">Prioridad (define el tiempo límite de atención)</label>
+        <select id="prioridad" name="prioridad">
+            <option value="Baja">Baja (72 h)</option>
+            <option value="Media" selected>Media (24 h)</option>
+            <option value="Alta">Alta (4 h)</option>
+        </select>
+
+        <label for="tecnico">Asignar a</label>
+        <select id="tecnico" name="tecnico">
+            <option value="">Sin asignar</option>
+            {% for u in tecnicos %}
+            <option value="{{ u }}">{{ u }}</option>
+            {% endfor %}
+        </select>
+
+        <button type="submit">Guardar ticket</button>
+    </form>
+</details>
+
+<section class="tickets lista">
+    <h2>Gestión de incidencias</h2>
+
+    <form method="get" class="filtros">
+        <input type="text" name="q" value="{{ filtros.q }}" placeholder="Buscar por título o descripción">
+
+        <select name="estado">
+            <option value="">Todos los estados</option>
+            {% for e in estados %}
+            <option value="{{ e }}" {% if filtros.estado == e %}selected{% endif %}>{{ e }}</option>
+            {% endfor %}
+        </select>
+
+        <select name="prioridad">
+            <option value="">Todas las prioridades</option>
+            {% for p in prioridades %}
+            <option value="{{ p }}" {% if filtros.prioridad == p %}selected{% endif %}>{{ p }}</option>
+            {% endfor %}
+        </select>
+
+        <select name="tecnico">
+            <option value="">Todos los técnicos</option>
+            <option value="sin_asignar" {% if filtros.tecnico == 'sin_asignar' %}selected{% endif %}>Sin asignar</option>
+            {% for u in tecnicos %}
+            <option value="{{ u }}" {% if filtros.tecnico == u %}selected{% endif %}>{{ u }}</option>
+            {% endfor %}
+        </select>
+
+        <select name="sla">
+            <option value="">Todo el SLA</option>
+            <option value="vencido" {% if filtros.sla == 'vencido' %}selected{% endif %}>Solo vencidos</option>
+        </select>
+
+        <button type="submit">Filtrar</button>
+        <a href="{{ url_for('inicio') }}" class="limpiar">Limpiar</a>
+    </form>
+
+    {% if tickets %}
+    <div class="tabla-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Título</th>
+                    <th>Prioridad</th>
+                    <th>Estado</th>
+                    <th>SLA</th>
+                    <th>Técnico</th>
+                    <th>Fecha</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for t in tickets %}
+                <tr class="{% if t.sla.estado == 'vencido' %}fila-vencida{% endif %}">
+                    <td>{{ t.id }}</td>
+                    <td>
+                        <a href="{{ url_for('ver_ticket', ticket_id=t.id) }}" class="enlace-ticket"><strong>{{ t.titulo }}</strong></a>
+                        {% if t.n_adjuntos %}<span class="clip">📎 {{ t.n_adjuntos }}</span>{% endif %}
+                        <span class="desc">{{ t.descripcion }}</span>
+                    </td>
+                    <td><span class="badge prio-{{ t.prioridad|lower }}">{{ t.prioridad }}</span></td>
+                    <td><span class="badge est-{{ t.estado|lower|replace(' ', '-') }}">{{ t.estado }}</span></td>
+                    <td><span class="badge sla-{{ t.sla.estado }}">{{ t.sla.texto }}</span></td>
+                    <td>{{ t.tecnico or '—' }}</td>
+                    <td>{{ t.fecha }}</td>
+                    <td class="acciones">
+                        <a href="{{ url_for('ver_ticket', ticket_id=t.id) }}" class="btn-link">Ver</a>
+
+                        {% if t.estado == 'Pendiente' %}
+                        <form action="{{ url_for('tomar_ticket', ticket_id=t.id) }}" method="post">
+                            <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn-info">Tomar</button>
+                        </form>
+                        {% endif %}
+
+                        <a href="{{ url_for('editar_ticket', ticket_id=t.id) }}" class="btn-link">Editar</a>
+
+                        {% if t.estado != 'Resuelto' %}
+                        <form action="{{ url_for('resolver_ticket', ticket_id=t.id) }}" method="post">
+                            <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn-ok">Resolver</button>
+                        </form>
+                        {% endif %}
+
+                        {% if session.rol == 'admin' %}
+                        <form action="{{ url_for('eliminar_ticket', ticket_id=t.id) }}" method="post"
+                              data-confirm="¿Eliminar este ticket y sus archivos adjuntos?">
+                            <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn-del">Eliminar</button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p class="vacio">No hay tickets que coincidan.</p>
+    {% endif %}
+</section>
+{% endblock %}

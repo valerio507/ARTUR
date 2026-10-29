@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block titulo %}Auditoría SOC{% endblock %}
+
+{% block contenido %}
+<section class="welcome">
+    <h2>Auditoría de seguridad (SOC)</h2>
+    <p>Eventos registrados por el sistema. Se muestran los últimos 200.</p>
+</section>
+
+<section class="stats stats-3">
+    <article class="card">
+        <h3>Logins fallidos (24 h)</h3>
+        <p class="number pendiente-num">{{ fallidos }}</p>
+    </article>
+    <article class="card">
+        <h3>Bloqueos por intentos (24 h)</h3>
+        <p class="number alerta-num">{{ bloqueos }}</p>
+    </article>
+    <article class="card">
+        <h3>Accesos denegados (24 h)</h3>
+        <p class="number alerta-num">{{ denegados }}</p>
+    </article>
+</section>
+
+<section class="tickets lista">
+    <form method="get" class="filtros">
+        <select name="evento">
+            <option value="">Todos los eventos</option>
+            {% for e in eventos %}
+            <option value="{{ e }}" {% if evento == e %}selected{% endif %}>{{ e }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit">Filtrar</button>
+        <a href="{{ url_for('ver_registros') }}" class="limpiar">Limpiar</a>
+    </form>
+
+    {% if registros %}
+    <div class="tabla-wrap">
+        <table>
+            <thead>
+                <tr><th>Fecha</th><th>Usuario</th><th>Evento</th><th>Detalle</th><th>IP</th></tr>
+            </thead>
+            <tbody>
+                {% for r in registros %}
+                <tr>
+                    <td>{{ r.fecha }}</td>
+                    <td>{{ r.usuario or '—' }}</td>
+                    <td>
+                        <span class="badge {% if r.evento in ('LOGIN_FALLIDO', 'LOGIN_BLOQUEADO', 'ACCESO_DENEGADO', 'CSRF_RECHAZADO') %}ev-alerta{% elif r.evento == 'LOGIN_OK' %}ev-ok{% else %}ev-info{% endif %}">{{ r.evento }}</span>
+                    </td>
+                    <td>{{ r.detalle }}</td>
+                    <td>{{ r.ip }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p class="vacio">No hay eventos registrados.</p>
+    {% endif %}
+</section>
+{% endblock %}

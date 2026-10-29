@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block titulo %}Iniciar sesión{% endblock %}
+
+{% block contenido %}
+<section class="tickets auth">
+    <h2>Iniciar sesión</h2>
+    <p>Ingresa con tu usuario para administrar los tickets.</p>
+
+    <form method="post" class="form">
+        <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+
+        <label for="usuario">Usuario</label>
+        <input type="text" id="usuario" name="usuario" maxlength="50" required autofocus>
+
+        <label for="password">Contraseña</label>
+        <input type="password" id="password" name="password" required>
+
+        <button type="submit">Entrar</button>
+    </form>
+</section>
+{% endblock %}

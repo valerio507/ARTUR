@@ -1,0 +1,19 @@
+{% macro barras(titulo, datos) %}
+<article class="grafica">
+    <h3>{{ titulo }}</h3>
+    {% if datos %}
+    {% set mx = [datos | map(attribute='valor') | max, 1] | max %}
+    <svg viewBox="0 0 320 {{ datos | length * 30 + 4 }}" class="svg-graf" role="img" aria-label="{{ titulo }}">
+        {% for d in datos %}
+        {% set y = loop.index0 * 30 %}
+        {% set ancho = (d.valor / mx * 170) | round | int %}
+        <text x="0" y="{{ y + 18 }}" class="g-etq">{{ d.etiqueta[:13] }}</text>
+        <rect x="100" y="{{ y + 4 }}" width="{{ ancho }}" height="18" rx="4" class="g-barra {{ d.clase }}"></rect>
+        <text x="{{ 100 + ancho + 6 }}" y="{{ y + 18 }}" class="g-val">{{ d.valor }}</text>
+        {% endfor %}
+    </svg>
+    {% else %}
+    <p class="vacio">Sin datos todavía.</p>
+    {% endif %}
+</article>
+{% endmacro %}

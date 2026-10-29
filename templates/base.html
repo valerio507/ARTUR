@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block titulo %}Panel{% endblock %} | ARTUR</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="{{ url_for('static', filename='app.js') }}" defer></script>
+</head>
+<body>
+    <header class="header">
+        <div>
+            <h1>ARTUR</h1>
+            <p>Sistema de Soporte Técnico</p>
+        </div>
+
+        {% if session.usuario %}
+        <nav class="nav">
+            <a href="{{ url_for('inicio') }}">Tickets</a>
+            {% if session.rol == 'admin' %}
+            <a href="{{ url_for('usuarios') }}">Usuarios</a>
+            <a href="{{ url_for('ver_registros') }}">Auditoría SOC</a>
+            {% endif %}
+            <span class="sesion">👤 {{ session.usuario }} ({{ session.rol }})</span>
+            <form action="{{ url_for('logout') }}" method="post" class="inline">
+                <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+                <button type="submit" class="btn-salir">Salir</button>
+            </form>
+        </nav>
+        {% endif %}
+    </header>
+
+    <main class="container">
+        {% with mensajes = get_flashed_messages(with_categories=true) %}
+            {% for categoria, mensaje in mensajes %}
+            <div class="alerta alerta-{{ categoria }}">{{ mensaje }}</div>
+            {% endfor %}
+        {% endwith %}
+
+        {% block contenido %}{% endblock %}
+    </main>
+
+    <footer>
+        <p>ARTUR · Sistema de soporte técnico</p>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block titulo %}Usuarios{% endblock %}
+
+{% block contenido %}
+<section class="tickets">
+    <h2>Nuevo usuario</h2>
+    <p>Crea cuentas para técnicos u otros administradores.</p>
+
+    <form action="{{ url_for('usuario_nuevo') }}" method="post" class="form">
+        <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+
+        <label for="usuario">Usuario</label>
+        <input type="text" id="usuario" name="usuario" maxlength="30" required>
+
+        <label for="password">Contraseña (mínimo 8, con letras y números)</label>
+        <input type="password" id="password" name="password" minlength="8" required>
+
+        <label for="rol">Rol</label>
+        <select id="rol" name="rol">
+            <option value="tecnico" selected>Técnico</option>
+            <option value="admin">Administrador</option>
+        </select>
+
+        <button type="submit">Crear usuario</button>
+    </form>
+</section>
+
+<section class="tickets lista">
+    <h2>Usuarios registrados</h2>
+    <div class="tabla-wrap">
+        <table>
+            <thead>
+                <tr><th>#</th><th>Usuario</th><th>Rol</th><th>Creado</th><th>Acciones</th></tr>
+            </thead>
+            <tbody>
+                {% for u in usuarios %}
+                <tr>
+                    <td>{{ u.id }}</td>
+                    <td><strong>{{ u.usuario }}</strong></td>
+                    <td><span class="badge {% if u.rol == 'admin' %}prio-alta{% else %}est-en-proceso{% endif %}">{{ u.rol }}</span></td>
+                    <td>{{ u.creado }}</td>
+                    <td class="acciones">
+                        {% if u.usuario != session.usuario %}
+                        <form action="{{ url_for('usuario_eliminar', user_id=u.id) }}" method="post"
+                              data-confirm="¿Eliminar al usuario {{ u.usuario }}?">
+                            <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn-del">Eliminar</button>
+                        </form>
+                        {% else %}
+                        <span class="desc">Tu cuenta</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}
